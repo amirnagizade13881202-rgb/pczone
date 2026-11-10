@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}علاقه‌مندی‌ها | PC Zone{% endblock %}
+{% block content %}
+<div class="container cart-page">
+    <h1><i class="fa-solid fa-heart" style="color: var(--danger);"></i> علاقه‌مندی‌های من</h1>
+    {% if items %}
+        <div class="product-grid">
+            {% for w in items %}
+            <div class="product-card">
+                <div class="img-wrap"><img src="{{ w.product.image }}" alt="{{ w.product.name }}"></div>
+                <div class="product-body">
+                    <h3><a href="/product/{{ w.product.id }}">{{ w.product.name }}</a></h3>
+                    <div class="price-row">
+                        <span class="price">{{ "{:,}".format(w.product.price) }} <small>تومان</small></span>
+                        <button class="add-btn" onclick="addToCart({{ w.product.id }})"><i class="fa-solid fa-cart-plus"></i></button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty">لیست علاقه‌مندی‌های شما خالی است ❤️</div>
+    {% endif %}
+</div>
+{% endblock %}

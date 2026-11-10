@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}سفارشات من | PC Zone{% endblock %}
+{% block content %}
+<div class="container cart-page">
+    <h1><i class="fa-solid fa-box"></i> سفارشات من</h1>
+    
+    {% if orders %}
+        {% for order in orders %}
+        <div class="order-card">
+            <div class="order-header">
+                <span>سفارش #{{ order.id }}</span>
+                <span class="status-badge status-{{ order.status }}">
+                    {% if order.status == 'paid' %}پرداخت شده{% elif order.status == 'shipped' %}ارسال شده{% elif order.status == 'delivered' %}تحویل شده{% else %}در انتظار{% endif %}
+                </span>
+            </div>
+            <div class="order-body">
+                <p>تاریخ: {{ order.created_at.strftime('%Y/%m/%d') }}</p>
+                <p>مبلغ: {{ "{:,}".format(order.total) }} تومان</p>
+                <p>آدرس: {{ order.address }}</p>
+                <details>
+                    <summary style="cursor: pointer; color: var(--accent);">مشاهده اقلام</summary>
+                    <ul style="margin-top: 10px;">
+                        {% for item in order.items %}
+                            <li>{{ item.product.name }} ({{ item.quantity }} عدد) - {{ "{:,}".format(item.price * item.quantity) }} تومان</li>
+                        {% endfor %}
+                    </ul>
+                </details>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p style="text-align: center; padding: 40px; color: var(--muted);">شما هنوز سفارشی ثبت نکرده‌اید.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}ثبت‌نام | PC Zone{% endblock %}
+{% block content %}
+<div class="container auth-page">
+    <div class="auth-box">
+        <h1>ساخت حساب جدید</h1>
+        <form method="POST">
+            <div class="form-group">
+                <label>نام کاربری</label>
+                <input type="text" name="username" required>
+            </div>
+            <div class="form-group">
+                <label>ایمیل</label>
+                <input type="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label>رمز عبور (حداقل ۶ کاراکتر)</label>
+                <input type="password" name="password" required minlength="6">
+            </div>
+            <button type="submit" class="btn-primary big">ثبت‌نام</button>
+        </form>
+        <p class="auth-link">حساب دارید؟ <a href="/login">وارد شوید</a></p>
+    </div>
+</div>
+{% endblock %}

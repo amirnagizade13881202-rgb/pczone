@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}پروفایل من | PC Zone{% endblock %}
+{% block content %}
+<div class="container auth-page">
+    <div class="auth-box">
+        <h1><i class="fa-solid fa-user"></i> پروفایل کاربری</h1>
+        <p style="text-align: center; color: var(--muted); margin-bottom: 20px;">نام کاربری: <strong>{{ current_user.username }}</strong></p>
+        <p style="text-align: center; color: var(--muted); margin-bottom: 20px;">ایمیل: <strong>{{ current_user.email }}</strong></p>
+
+        <form method="POST">
+            <div class="form-group">
+                <label>شماره تماس</label>
+                <input type="text" name="phone" value="{{ current_user.phone or '' }}" placeholder="09xxxxxxxxx">
+            </div>
+            <div class="form-group">
+                <label>آدرس پیش‌فرض</label>
+                <textarea name="address" rows="3" placeholder="استان، شهر، خیابان...">{{ current_user.address or '' }}</textarea>
+            </div>
+            <button type="submit" class="btn-primary big">ذخیره تغییرات</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

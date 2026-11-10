@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}مدیریت نظرات | PC Zone{% endblock %}
+{% block content %}
+<div class="container admin-page">
+    <h1>مدیریت نظرات</h1>
+    <a href="/admin" class="btn-secondary" style="text-decoration: none; margin-bottom: 20px; display: inline-block;">بازگشت به داشبورد</a>
+
+    <table class="admin-table">
+        <thead>
+            <tr><th>محصول</th><th>کاربر</th><th>امتیاز</th><th>نظر</th><th>تاریخ</th><th>حذف</th></tr>
+        </thead>
+        <tbody>
+            {% for r in reviews %}
+            <tr>
+                <td>{{ r.product.name[:30] }}...</td>
+                <td>{{ r.user.username }}</td>
+                <td>⭐ {{ r.rating }}</td>
+                <td>{{ r.comment[:50] }}...</td>
+                <td>{{ r.created_at.strftime('%Y/%m/%d') }}</td>
+                <td>
+                    <form method="POST" action="/admin/reviews/delete/{{ r.id }}" style="display:inline;">
+                        <button type="submit" class="remove-btn" onclick="return confirm('حذف شود؟')">🗑️</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" style="text-align: center; padding: 20px;">هنوز نظری ثبت نشده است.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

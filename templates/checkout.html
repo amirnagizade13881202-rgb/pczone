@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}تسویه حساب | PC Zone{% endblock %}
+{% block content %}
+<div class="container checkout-page">
+    <h1><i class="fa-solid fa-credit-card"></i> تسویه حساب</h1>
+    <div class="checkout-box">
+        <form method="POST">
+            <div class="form-group">
+                <label>آدرس کامل پستی</label>
+                <textarea name="address" rows="3" required placeholder="استان، شهر، خیابان، پلاک...">{{ current_user.address or '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label>شماره تماس</label>
+                <input type="text" name="phone" required value="{{ current_user.phone or '' }}" placeholder="09xxxxxxxxx">
+            </div>
+            
+            <div class="form-group" style="background: var(--card-2); padding: 15px; border-radius: 10px;">
+                <label>کد تخفیف (اختیاری)</label>
+                <input type="text" name="coupon_code" id="checkoutCoupon" placeholder="مثلاً: PCZONE10" style="text-transform: uppercase;">
+            </div>
+
+            <button type="submit" class="btn-primary big">پرداخت و ثبت سفارش</button>
+        </form>
+        <p style="margin-top: 15px; color: var(--muted); text-align: center;">
+            <i class="fa-solid fa-lock"></i> پرداخت به صورت امن از طریق درگاه زرین‌پال (شبیه‌سازی شده)
+        </p>
+    </div>
+</div>
+
+<script>
+// انتقال خودکار کد تخفیف از صفحه سبد خرید به اینجا
+document.addEventListener("DOMContentLoaded", () => {
+    const savedCode = sessionStorage.getItem("coupon_code");
+    if (savedCode) {
+        const input = document.getElementById("checkoutCoupon");
+        if (input) input.value = savedCode;
+    }
+});
+</script>
+{% endblock %}

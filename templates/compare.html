@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}مقایسه محصولات | PC Zone{% endblock %}
+{% block content %}
+<div class="container" style="padding: 40px 20px;">
+    <h1 style="margin-bottom: 30px;">⚖️ مقایسه محصولات</h1>
+    
+    {% if products and products|length >= 1 %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+        {% for p in products %}
+        <div style="background: var(--card); padding: 25px; border-radius: 16px; border: 1px solid var(--primary);">
+            <div class="img-wrap" style="height: 180px;"><img src="{{ p.image }}" alt="{{ p.name }}"></div>
+            <h3 style="margin: 15px 0; font-size: 16px;">{{ p.name }}</h3>
+            <p style="color: var(--muted); margin-bottom: 10px;">دسته: {{ p.category.name }}</p>
+            <p style="color: var(--success); font-size: 20px; font-weight: bold; margin-bottom: 15px;">{{ "{:,}".format(p.price) }} تومان</p>
+            <p style="margin-bottom: 10px;">⭐ امتیاز: {{ p.average_rating }}</p>
+            <p style="margin-bottom: 10px;">📦 موجودی: {{ p.stock }} عدد</p>
+            <p style="color: var(--muted); font-size: 13px; margin-bottom: 15px;">{{ p.description }}</p>
+            <button class="btn-primary big" onclick="addToCart({{ p.id }})">افزودن به سبد خرید</button>
+        </div>
+        {% endfor %}
+    </div>
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="/" class="btn-secondary" style="text-decoration: none;">بازگشت به فروشگاه</a>
+        <button onclick="localStorage.removeItem('compare'); location.reload();" class="btn-secondary" style="margin-right: 10px;">پاک کردن مقایسه</button>
+    </div>
+    {% else %}
+    <div class="empty">
+        <p style="margin-bottom: 20px;">هنوز محصولی برای مقایسه انتخاب نکرده‌اید.</p>
+        <a href="/" class="btn-primary" style="text-decoration: none;">بازگشت به فروشگاه</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

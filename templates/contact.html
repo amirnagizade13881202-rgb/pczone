@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}تماس با ما | PC Zone{% endblock %}
+{% block content %}
+<div class="container" style="padding: 40px 20px; max-width: 900px; margin: 0 auto;">
+    <h1 style="margin-bottom: 30px; text-align: center;">تماس با <span style="color: var(--primary);">PC Zone</span></h1>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+        <div style="background: var(--card); padding: 30px; border-radius: 16px; border: 1px solid rgba(124, 58, 237, 0.2);">
+            <h2 style="color: var(--accent); margin-bottom: 20px;">اطلاعات تماس</h2>
+            <p style="margin-bottom: 15px;"><i class="fa-solid fa-location-dot" style="color: var(--primary); margin-left: 10px;"></i> تهران، خیابان ولیعصر، پلاک ۱۲۳</p>
+            <p style="margin-bottom: 15px;"><i class="fa-solid fa-phone" style="color: var(--primary); margin-left: 10px;"></i> ۰۲۱-۱۲۳۴۵۶۷۸</p>
+            <p style="margin-bottom: 15px;"><i class="fa-solid fa-envelope" style="color: var(--primary); margin-left: 10px;"></i> info@pczone.ir</p>
+            <p style="margin-bottom: 15px;"><i class="fa-solid fa-clock" style="color: var(--primary); margin-left: 10px;"></i> شنبه تا پنجشنبه: ۹ صبح تا ۶ عصر</p>
+        </div>
+
+        <div style="background: var(--card); padding: 30px; border-radius: 16px; border: 1px solid rgba(124, 58, 237, 0.2);">
+            <h2 style="color: var(--accent); margin-bottom: 20px;">ارسال پیام</h2>
+            <form method="POST">
+                <div class="form-group">
+                    <label>نام شما</label>
+                    <input type="text" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label>ایمیل</label>
+                    <input type="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label>پیام شما</label>
+                    <textarea name="message" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="btn-primary big">ارسال پیام</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

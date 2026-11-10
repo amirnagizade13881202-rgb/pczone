@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}مدیریت کاربران | PC Zone{% endblock %}
+{% block content %}
+<div class="container admin-page">
+    <h1>مدیریت کاربران</h1>
+    <a href="/admin" class="btn-secondary" style="text-decoration: none; margin-bottom: 20px; display: inline-block;">بازگشت به داشبورد</a>
+
+    <table class="admin-table">
+        <thead>
+            <tr><th>ID</th><th>نام کاربری</th><th>ایمیل</th><th>نقش</th><th>تاریخ عضویت</th><th>عملیات</th></tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>{{ u.id }}</td>
+                <td>{{ u.username }}</td>
+                <td>{{ u.email }}</td>
+                <td>{% if u.is_admin %}<span style="color: var(--danger);">ادمین</span>{% else %}کاربر عادی{% endif %}</td>
+                <td>{{ u.created_at.strftime('%Y/%m/%d') if u.created_at else '---' }}</td>
+                <td>
+                    {% if not u.is_admin %}
+                    <form method="POST" action="/admin/users/delete/{{ u.id }}" style="display:inline;">
+                        <button type="submit" class="remove-btn" onclick="return confirm('حذف شود؟')">🗑️</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

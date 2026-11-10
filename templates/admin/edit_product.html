@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}ویرایش محصول | PC Zone{% endblock %}
+{% block content %}
+<div class="container admin-page" style="max-width: 800px;">
+    <h1>ویرایش محصول: {{ product.name }}</h1>
+    <a href="/admin/products" class="btn-secondary" style="text-decoration: none;">بازگشت به لیست</a>
+
+    <div class="admin-form-box" style="margin-top: 20px;">
+        <form method="POST" enctype="multipart/form-data">
+            <div class="form-row">
+                <input type="text" name="name" value="{{ product.name }}" required>
+                <select name="category_id" required>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if cat.id == product.category_id %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-row">
+                <input type="number" name="price" value="{{ product.price }}" required>
+                <input type="number" name="old_price" value="{{ product.old_price or '' }}">
+                <input type="number" name="stock" value="{{ product.stock }}" required>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <p style="color: var(--muted); margin-bottom: 8px;">عکس فعلی:</p>
+                <img src="{{ product.image }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 10px; border: 2px solid var(--primary);">
+            </div>
+
+            <div class="form-row">
+                <label style="color: var(--muted); font-size: 14px;">تغییر عکس (از کامپیوتر):</label>
+                <input type="file" name="image_file" accept="image/*">
+            </div>
+            <div class="form-row">
+                <label style="color: var(--muted); font-size: 14px;">یا لینک جدید:</label>
+                <input type="text" name="image_url" placeholder="https://...">
+            </div>
+            
+            <textarea name="description" rows="3" style="width: 100%; margin-bottom: 15px; padding: 12px; background: var(--card-2); border: 1px solid var(--primary); color: var(--text); border-radius: 10px;">{{ product.description }}</textarea>
+            
+            <button type="submit" class="btn-primary big">ذخیره تغییرات</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

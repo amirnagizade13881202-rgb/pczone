@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}سفارش موفق | PC Zone{% endblock %}
+{% block content %}
+<div class="container auth-page">
+    <div class="auth-box success-box">
+        <i class="fa-solid fa-circle-check success-icon"></i>
+        <h1>سفارش شما با موفقیت ثبت شد!</h1>
+        <p>شماره سفارش: <strong>#{{ order.id }}</strong></p>
+        <p>مبلغ پرداخت شده: <strong>{{ "{:,}".format(order.total) }} تومان</strong></p>
+        <p>کد رهگیری پرداخت: <strong>{{ order.payment_ref }}</strong></p>
+        <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <a href="/order/invoice/{{ order.id }}" class="btn-primary" style="text-decoration: none;">
+                <i class="fa-solid fa-print"></i> چاپ فاکتور
+            </a>
+            <a href="/my-orders" class="btn-secondary" style="text-decoration: none;">مشاهده سفارشات</a>
+            <a href="/" class="btn-secondary" style="text-decoration: none;">بازگشت به فروشگاه</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

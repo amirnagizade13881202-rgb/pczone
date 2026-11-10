@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}مدیریت کدهای تخفیف | PC Zone{% endblock %}
+{% block content %}
+<div class="container admin-page">
+    <h1>مدیریت کدهای تخفیف</h1>
+    <a href="/admin/products" class="btn-secondary" style="text-decoration: none;">بازگشت به مدیریت محصولات</a>
+
+    <div class="admin-form-box" style="margin-top: 20px;">
+        <h2>افزودن کد تخفیف جدید</h2>
+        <form method="POST" class="form-row">
+            <input type="text" name="code" placeholder="مثلاً: PCZONE20" required style="text-transform: uppercase;">
+            <input type="number" name="discount_percent" placeholder="درصد تخفیف (1-100)" min="1" max="100" required>
+            <button type="submit" class="btn-primary">افزودن کد</button>
+        </form>
+    </div>
+
+    <table class="admin-table" style="margin-top: 20px;">
+        <thead>
+            <tr><th>کد تخفیف</th><th>درصد تخفیف</th><th>تاریخ ساخت</th><th>وضعیت</th><th>حذف</th></tr>
+        </thead>
+        <tbody>
+            {% for c in coupons %}
+            <tr>
+                <td style="font-weight: bold; color: var(--accent);">{{ c.code }}</td>
+                <td>{{ c.discount_percent }}%</td>
+                <td>{{ c.created_at.strftime('%Y/%m/%d') }}</td>
+                <td>{% if c.is_active %}<span style="color: var(--success)">فعال</span>{% else %}<span style="color: var(--danger)">غیرفعال</span>{% endif %}</td>
+                <td>
+                    <form method="POST" action="/admin/coupons/delete/{{ c.id }}" style="display:inline;">
+                        <button type="submit" class="remove-btn" onclick="return confirm('حذف شود؟')">🗑️</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" style="text-align: center; padding: 20px;">هنوز کد تخفیفی ساخته نشده است.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

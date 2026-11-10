@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>فاکتور سفارش #{{ order.id }} | PC Zone</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+    <style>
+        body {
+            font-family: 'Vazirmatn', Tahoma, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            color: #333;
+        }
+        .invoice-box {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #7c3aed;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .logo { font-size: 28px; font-weight: 800; color: #7c3aed; }
+        .invoice-title { text-align: left; }
+        .invoice-title h2 { margin: 0; color: #7c3aed; }
+        .invoice-title p { margin: 5px 0; color: #666; font-size: 14px; }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .info-box {
+            flex: 1;
+            min-width: 200px;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border-right: 4px solid #7c3aed;
+        }
+        .info-box h4 { margin: 0 0 10px 0; color: #7c3aed; font-size: 14px; }
+        .info-box p { margin: 5px 0; font-size: 13px; color: #555; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        th {
+            background: #7c3aed;
+            color: white;
+            font-size: 14px;
+        }
+        td { font-size: 13px; }
+        .total-row {
+            background: #f9f9f9;
+            font-weight: bold;
+        }
+        .total-row td { font-size: 16px; color: #10b981; }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #666;
+            font-size: 12px;
+        }
+        .print-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 12px 30px;
+            background: #7c3aed;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 16px;
+        }
+        .print-btn:hover { background: #5b21b6; }
+        @media print {
+            body { background: white; padding: 0; }
+            .invoice-box { box-shadow: none; padding: 20px; }
+            .print-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-box">
+        <div class="header">
+            <div class="logo">🖥️ PC Zone</div>
+            <div class="invoice-title">
+                <h2>فاکتور فروش</h2>
+                <p>شماره سفارش: #{{ order.id }}</p>
+                <p>تاریخ: {{ order.created_at.strftime('%Y/%m/%d - %H:%M') }}</p>
+            </div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-box">
+                <h4>اطلاعات مشتری</h4>
+                <p><strong>نام کاربری:</strong> {{ order.user.username }}</p>
+                <p><strong>ایمیل:</strong> {{ order.user.email }}</p>
+                <p><strong>تلفن:</strong> {{ order.phone }}</p>
+            </div>
+            <div class="info-box">
+                <h4>آدرس تحویل</h4>
+                <p>{{ order.address }}</p>
+            </div>
+            <div class="info-box">
+                <h4>اطلاعات پرداخت</h4>
+                <p><strong>کد رهگیری:</strong> {{ order.payment_ref or '---' }}</p>
+                <p><strong>وضعیت:</strong> 
+                    {% if order.status == 'paid' %}پرداخت شده
+                    {% elif order.status == 'shipped' %}ارسال شده
+                    {% elif order.status == 'delivered' %}تحویل شده
+                    {% else %}{{ order.status }}{% endif %}
+                </p>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>نام محصول</th>
+                    <th>تعداد</th>
+                    <th>قیمت واحد</th>
+                    <th>جمع</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ "{:,}".format(item.price) }} تومان</td>
+                    <td>{{ "{:,}".format(item.price * item.quantity) }} تومان</td>
+                </tr>
+                {% endfor %}
+                {% if order.discount_amount and order.discount_amount > 0 %}
+                <tr style="color: #ef4444;">
+                    <td colspan="4">تخفیف (کد: {{ order.coupon_code }})</td>
+                    <td>- {{ "{:,}".format(order.discount_amount) }} تومان</td>
+                </tr>
+                {% endif %}
+                <tr class="total-row">
+                    <td colspan="4">مبلغ نهایی</td>
+                    <td>{{ "{:,}".format(order.total) }} تومان</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <button class="print-btn" onclick="window.print()">🖨️ چاپ فاکتور</button>
+
+        <div class="footer">
+            <p>با تشکر از خرید شما از PC Zone</p>
+            <p>این فاکتور به صورت خودکار تولید شده است.</p>
+        </div>
+    </div>
+</body>
+</html>

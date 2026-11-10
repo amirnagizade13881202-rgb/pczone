@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}داشبورد ادمین | PC Zone{% endblock %}
+{% block content %}
+<div class="container admin-page">
+    <h1>پنل مدیریت PC Zone</h1>
+    
+    <div class="admin-stats">
+        <div class="stat-card"><i class="fa-solid fa-users"></i><h3>{{ stats.users }}</h3><p>کاربران</p></div>
+        <div class="stat-card"><i class="fa-solid fa-microchip"></i><h3>{{ stats.products }}</h3><p>محصولات</p></div>
+        <div class="stat-card"><i class="fa-solid fa-receipt"></i><h3>{{ stats.orders }}</h3><p>سفارشات</p></div>
+        <div class="stat-card"><i class="fa-solid fa-dollar-sign"></i><h3>{{ "{:,}".format(stats.revenue) }}</h3><p>فروش (تومان)</p></div>
+    </div>
+
+    <div class="admin-links">
+        <a href="/admin/products" class="btn-primary">مدیریت محصولات</a>
+        <a href="/admin/orders" class="btn-primary">مدیریت سفارشات</a>
+        <a href="/admin/coupons" class="btn-primary">کدهای تخفیف</a>
+        <a href="/admin/users" class="btn-primary" style="background: var(--accent); color: black;">مدیریت کاربران</a>
+        <a href="/admin/reviews" class="btn-primary" style="background: var(--success);">مدیریت نظرات</a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0;">
+        <div style="background: var(--card); padding: 25px; border-radius: 16px; border: 1px solid rgba(124, 58, 237, 0.2);">
+            <h2 style="margin-bottom: 20px; font-size: 18px;">📊 فروش ۷ روز اخیر (تومان)</h2>
+            <div style="position: relative; height: 300px;"><canvas id="salesChart"></canvas></div>
+        </div>
+        <div style="background: var(--card); padding: 25px; border-radius: 16px; border: 1px solid rgba(124, 58, 237, 0.2);">
+            <h2 style="margin-bottom: 20px; font-size: 18px;">🏆 پرفروش‌ترین محصولات</h2>
+            <div style="position: relative; height: 300px;"><canvas id="topProductsChart"></canvas></div>
+        </div>
+    </div>
+
+    <h2 style="margin-top: 40px; margin-bottom: 20px;">آخرین سفارشات</h2>
+    <div style="overflow-x: auto;">
+        <table class="admin-table">
+            <thead>
+                <tr><th>ID</th><th>کاربر</th><th>مبلغ</th><th>وضعیت</th><th>تاریخ</th></tr>
+            </thead>
+            <tbody>
+                {% for o in recent_orders %}
+                <tr>
+                    <td>#{{ o.id }}</td>
+                    <td>{{ o.user.username }}</td>
+                    <td>{{ "{:,}".format(o.total) }}</td>
+                    <td><span class="status-badge status-{{ o.status }}">{{ o.status }}</span></td>
+                    <td>{{ o.created_at.strftime('%Y/%m/%d - %H:%M') }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--muted);">هنوز سفارشی ثبت نشده است.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+    new Chart(document.getElementById('salesChart').getContext('2d'), {
+        type: 'bar',
+        data: { labels: {{ sales_labels|tojson }}, datasets: [{ label: 'فروش', data: {{ sales_data|tojson }}, backgroundColor: 'rgba(124, 58, 237, 0.6)', borderColor: 'rgba(124, 58, 237, 1)', borderWidth: 2, borderRadius: 8 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#e5e7eb' } } }, scales: { y: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#9ca3af' }, grid: { display: false } } } }
+    });
+    new Chart(document.getElementById('topProductsChart').getContext('2d'), {
+        type: 'doughnut',
+        data: { labels: {{ top_labels|tojson }}, datasets: [{ data: {{ top_data|tojson }}, backgroundColor: ['rgba(124, 58, 237, 0.8)', 'rgba(34, 211, 238, 0.8)', 'rgba(16, 185, 129, 0.8)', 'rgba(251, 191, 36, 0.8)', 'rgba(239, 68, 68, 0.8)'], borderColor: 'rgba(0,0,0,0.1)', borderWidth: 2 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#e5e7eb', padding: 15, font: { size: 12 } } } } }
+    });
+</script>
+{% endblock %}

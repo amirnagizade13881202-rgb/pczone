@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}مدیریت سفارشات | PC Zone{% endblock %}
+{% block content %}
+<div class="container admin-page">
+    <h1>مدیریت سفارشات</h1>
+    <a href="/admin" class="btn-secondary" style="text-decoration: none;">بازگشت به داشبورد</a>
+
+    <table class="admin-table" style="margin-top: 20px;">
+        <thead>
+            <tr><th>ID</th><th>کاربر</th><th>مبلغ</th><th>آدرس</th><th>وضعیت</th><th>تغییر وضعیت</th></tr>
+        </thead>
+        <tbody>
+            {% for o in orders %}
+            <tr>
+                <td>#{{ o.id }}</td>
+                <td>{{ o.user.username }}</td>
+                <td>{{ "{:,}".format(o.total) }}</td>
+                <td>{{ o.address[:30] }}...</td>
+                <td>{{ o.status }}</td>
+                <td>
+                    <form method="POST" action="/admin/orders/{{ o.id }}/status" style="display:flex; gap:5px;">
+                        <select name="status" style="padding: 5px;">
+                            <option value="pending" {% if o.status=='pending' %}selected{% endif %}>در انتظار</option>
+                            <option value="paid" {% if o.status=='paid' %}selected{% endif %}>پرداخت شده</option>
+                            <option value="shipped" {% if o.status=='shipped' %}selected{% endif %}>ارسال شده</option>
+                            <option value="delivered" {% if o.status=='delivered' %}selected{% endif %}>تحویل شده</option>
+                        </select>
+                        <button type="submit" class="btn-primary" style="padding: 5px 10px; font-size: 12px;">ثبت</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

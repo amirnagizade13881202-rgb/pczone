@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container cart-page">
+    <h1><i class="fa-solid fa-cart-shopping"></i> سبد خرید</h1>
+    <div id="cartItems"></div>
+    
+    <div id="cartFooter" class="cart-footer" style="display:none">
+        <!-- کد تخفیف -->
+        <div style="margin-bottom: 20px; padding: 15px; background: var(--card-2); border-radius: 12px;">
+            <label style="color: var(--muted); margin-bottom: 8px; display: block;">کد تخفیف دارید؟</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="couponInput" placeholder="مثلاً: PCZONE10" style="flex: 1; padding: 10px; border-radius: 8px; background: var(--card); border: 1px solid var(--primary); color: var(--text);">
+                <button onclick="applyCoupon()" class="btn-primary" style="padding: 10px 20px;">اعمال کد</button>
+            </div>
+            <p id="couponMsg" style="margin-top: 10px; font-size: 14px;"></p>
+        </div>
+
+        <h2>مبلغ کل: <span id="cartTotal"></span> تومان</h2>
+        <a href="/checkout" class="btn-primary big" style="text-decoration: none;">
+            تکمیل خرید <i class="fa-solid fa-arrow-left"></i>
+        </a>
+    </div>
+</div>
+
+<script>
+async function applyCoupon() {
+    const code = document.getElementById("couponInput").value.trim();
+    const msgEl = document.getElementById("couponMsg");
+    
+    if (!code) { msgEl.textContent = "لطفاً کد را وارد کنید"; msgEl.style.color = "var(--danger)"; return; }
+    
+    const res = await fetch("/api/apply-coupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: code })
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+        msgEl.textContent = `✅ کد تخفیف اعمال شد (${data.discount}% تخفیف) - در مرحله پرداخت لحاظ می‌شود`;
+        msgEl.style.color = "var(--success)";
+        sessionStorage.setItem("coupon_code", code);
+    } else {
+        msgEl.textContent = "❌ " + data.message;
+        msgEl.style.color = "var(--danger)";
+        sessionStorage.removeItem("coupon_code");
+    }
+}
+</script>
+{% endblock %}

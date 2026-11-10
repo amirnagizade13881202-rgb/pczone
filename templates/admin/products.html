@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}مدیریت محصولات | PC Zone{% endblock %}
+{% block content %}
+<div class="container admin-page">
+    <h1>مدیریت محصولات</h1>
+    <div class="admin-links" style="margin-bottom: 20px;">
+        <a href="/admin" class="btn-secondary" style="text-decoration: none;">بازگشت به داشبورد</a>
+        <a href="/admin/coupons" class="btn-secondary" style="text-decoration: none;">مدیریت کدهای تخفیف</a>
+    </div>
+
+    <!-- فرم افزودن محصول -->
+    <div class="admin-form-box">
+        <h2>افزودن محصول جدید</h2>
+        <!-- نکته: enctype="multipart/form-data" برای آپلود فایل الزامی است -->
+        <form method="POST" action="/admin/products/add" enctype="multipart/form-data">
+            <div class="form-row">
+                <input type="text" name="name" placeholder="نام محصول" required>
+                <select name="category_id" required>
+                    <option value="">دسته‌بندی</option>
+                    {% for cat in categories %}<option value="{{ cat.id }}">{{ cat.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="form-row">
+                <input type="number" name="price" placeholder="قیمت (تومان)" required>
+                <input type="number" name="old_price" placeholder="قیمت قبل (اختیاری)">
+                <input type="number" name="stock" placeholder="موجودی" required>
+            </div>
+            <div class="form-row">
+                <label style="color: var(--muted); font-size: 14px;">عکس از کامپیوتر:</label>
+                <input type="file" name="image_file" accept="image/*">
+            </div>
+            <div class="form-row">
+                <label style="color: var(--muted); font-size: 14px;">یا لینک عکس:</label>
+                <input type="text" name="image_url" placeholder="https://...">
+            </div>
+            <textarea name="description" placeholder="توضیحات" rows="2" style="width: 100%; margin-bottom: 10px; padding: 12px; background: var(--card-2); border: 1px solid var(--primary); color: var(--text); border-radius: 10px;"></textarea>
+            <button type="submit" class="btn-primary">افزودن محصول</button>
+        </form>
+    </div>
+
+    <!-- جدول محصولات -->
+    <table class="admin-table" style="margin-top: 30px;">
+        <thead>
+            <tr><th>ID</th><th>عکس</th><th>نام</th><th>دسته</th><th>قیمت</th><th>موجودی</th><th>عملیات</th></tr>
+        </thead>
+        <tbody>
+            {% for p in products %}
+            <tr>
+                <td>{{ p.id }}</td>
+                <td><img src="{{ p.image }}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px;"></td>
+                <td>{{ p.name }}</td>
+                <td>{{ p.category.name }}</td>
+                <td>{{ "{:,}".format(p.price) }}</td>
+                <td>{{ p.stock }}</td>
+                <td style="display: flex; gap: 5px;">
+                    <a href="/admin/products/edit/{{ p.id }}" class="btn-primary" style="padding: 6px 12px; font-size: 13px; text-decoration: none;">✏️ ویرایش</a>
+                    <form method="POST" action="/admin/products/delete/{{ p.id }}" style="display:inline;">
+                        <button type="submit" class="remove-btn" onclick="return confirm('حذف شود؟')">🗑️</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
