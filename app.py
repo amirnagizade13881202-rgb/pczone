@@ -9,10 +9,19 @@ from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+
+# ==================== تنظیمات دیتابیس (برای سرور) ====================
+# استفاده از /tmp/ برای اینکه روی سرور رندر مشکلی پیش نیاد
+db_path = os.path.join("/tmp", "pczone.db") if os.environ.get("RENDER") else "sqlite:///pczone.db"
+if os.environ.get("RENDER"):
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + db_path
+else:
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///pczone.db"
+
 app.config["SECRET_KEY"] = "pc-zone-secret-2024"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///pczone.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+# تنظیمات آپلود عکس
 UPLOAD_FOLDER = os.path.join("static", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
@@ -477,11 +486,15 @@ def admin_delete_review(rid):
     r = Review.query.get_or_404(rid); db.session.delete(r); db.session.commit(); flash("نظر حذف شد", "success")
     return redirect(url_for("admin_reviews"))
 
+# ==================== اجرای اولیه دیتابیس ====================
+# این بخش باعث میشه موقع بالا اومدن سرور، جدول‌ها ساخته بشن
+with app.app_context():
+    init_database()
+
 if __name__ == "__main__":
-    with app.app_context():
-        init_database()
     print("\n" + "="*50)
     print("🖥️  PC Zone فروشگاه در حال اجراست")
     print("🌐 http://localhost:5000")
     print("👤 ادمین: admin / admin123")
     print("="*50 + "\n")
+    app.run(debug=True, host="0.0.0.0", port=5000)
