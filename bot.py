@@ -5,14 +5,12 @@ import threading
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, MessageHandler, filters
 
-# ==================== تنظیمات ====================
 BOT_TOKEN = "9072062584:AAHyr3ZeRD6o0rhGbNbL7JSUCpSJ6i1P3O0"
 ADMIN_USERNAME = "@amirimigadze1388"
 
-# اطلاعات دیتابیس Supabase (علامت @ با %40 جایگزین شد)
-DB_URI = "postgresql://postgres:As13881202%40pc@db.gmakikihtqvlvmkeyxza.supabase.co:5432/postgres"
+# آدرس Pooler (اصلاح شده برای Render)
+DB_URI = "postgresql://postgres.gmakikihtqvlvmkeyxza:As13881202%40pc@aws-0-us-east-1.pooler.supabase.com:5432/postgres"
 
-# ==================== وب‌سرور فیک برای رندر ====================
 web_app = Flask(__name__)
 
 @web_app.route('/')
@@ -24,20 +22,14 @@ def run_web_server():
 
 threading.Thread(target=run_web_server, daemon=True).start()
 
-# ==================== اتصال به دیتابیس ====================
 def get_db():
     conn = psycopg2.connect(DB_URI)
     conn.autocommit = True
     return conn
 
-# ==================== توابع ربات ====================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_name = update.effective_user.first_name
-    welcome_text = (
-        f"سلام {user_name} عزیز! 👋\n"
-        "به ربات فروشگاه **PC Zone** خوش آمدید. 🖥️\n\n"
-        "از منوی زیر استفاده کنید:"
-    )
+    welcome_text = f"سلام {user_name} عزیز! 👋\nبه ربات فروشگاه **PC Zone** خوش آمدید. 🖥️\n\nاز منوی زیر استفاده کنید:"
     keyboard = [
         [InlineKeyboardButton("🛍️ مشاهده محصولات", callback_data="show_products")],
         [InlineKeyboardButton("🛒 سبد خرید من", callback_data="my_cart")],
@@ -45,41 +37,29 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("📞 ارتباط با پشتیبانی", url=f"https://t.me/{ADMIN_USERNAME.replace('@', '')}")],
         [InlineKeyboardButton("ℹ️ درباره ما", callback_data="about_us")]
     ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text(welcome_text, reply_markup=reply_markup, parse_mode="Markdown")
+    await update.message.reply_text(welcome_text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
 
 async def show_products(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     if query: await query.answer()
-
     try:
         conn = get_db()
         cursor = conn.cursor()
         cursor.execute("SELECT id, name, price FROM products LIMIT 10")
         products = cursor.fetchall()
-        cursor.close()
-        conn.close()
-
+        cursor.close(); conn.close()
         if not products:
             msg = "در حال حاضر هیچ محصولی در فروشگاه موجود نیست. 😕"
             if query: await query.edit_message_text(msg)
             else: await update.message.reply_text(msg)
             return
-
-        keyboard = []
-        for p in products:
-            btn_text = f"{p[1]} - {p[2]:,} تومان"
-            keyboard.append([InlineKeyboardButton(btn_text, callback_data=f"product_{p[0]}")])
-        
+        keyboard = [[InlineKeyboardButton(f"{p[1]} - {p[2]:,} تومان", callback_data=f"product_{p[0]}")] for p in products]
         keyboard.append([InlineKeyboardButton("🔙 بازگشت به منو", callback_data="main_menu")])
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
         msg_text = "📦 لطفاً یکی از محصولات را انتخاب کنید:"
-        if query: await query.edit_message_text(msg_text, reply_markup=reply_markup)
-        else: await update.message.reply_text(msg_text, reply_markup=reply_markup)
-
+        if query: await query.edit_message_text(msg_text, reply_markup=InlineKeyboardMarkup(keyboard))
+        else: await update.message.reply_text(msg_text, reply_markup=InlineKeyboardMarkup(keyboard))
     except Exception as e:
-        error_msg = f"خطا در دریافت محصولات: {str(e)}"
+        error_msg = f"خطا: {str(e)}"
         if query: await query.edit_message_text(error_msg)
         else: await update.message.reply_text(error_msg)
 
@@ -87,34 +67,22 @@ async def product_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     product_id = int(query.data.split("_")[1])
-
     try:
         conn = get_db()
         cursor = conn.cursor()
         cursor.execute("SELECT name, price, stock, description FROM products WHERE id = %s", (product_id,))
         product = cursor.fetchone()
-        cursor.close()
-        conn.close()
-
+        cursor.close(); conn.close()
         if not product:
             await query.edit_message_text("محصول یافت نشد.")
             return
-
-        text = (
-            f"🔹 **{product[0]}**\n\n"
-            f"💰 قیمت: {product[1]:,} تومان\n"
-            f"📦 موجودی: {product[2]} عدد\n"
-            f"📝 توضیحات: {product[3]}\n"
-        )
-        
+        text = f"🔹 **{product[0]}**\n\n💰 قیمت: {product[1]:,} تومان\n📦 موجودی: {product[2]} عدد\n📝 توضیحات: {product[3]}\n"
         keyboard = [
             [InlineKeyboardButton("🛒 افزودن به سبد", callback_data=f"addcart_{product_id}")],
             [InlineKeyboardButton("🌐 خرید از سایت", url="https://pczone-ice3.onrender.com")],
             [InlineKeyboardButton("🔙 بازگشت به لیست", callback_data="show_products")]
         ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(text, reply_markup=reply_markup, parse_mode="Markdown")
-
+        await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
     except Exception as e:
         await query.edit_message_text(f"خطا: {str(e)}")
 
@@ -130,14 +98,12 @@ async def my_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     if query: await query.answer()
     cart = context.user_data.get('cart', {})
-    
     if not cart:
         msg = "🛒 سبد خرید شما خالی است."
         keyboard = [[InlineKeyboardButton("🔙 بازگشت", callback_data="main_menu")]]
         if query: await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup(keyboard))
         else: await update.message.reply_text(msg, reply_markup=InlineKeyboardMarkup(keyboard))
         return
-
     try:
         conn = get_db()
         cursor = conn.cursor()
@@ -147,20 +113,17 @@ async def my_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
             cursor.execute("SELECT name, price FROM products WHERE id = %s", (int(pid),))
             p = cursor.fetchone()
             if p:
-                subtotal = p[1] * qty
-                total_price += subtotal
+                subtotal = p[1] * qty; total_price += subtotal
                 text += f"▪️ {p[0]} (x{qty}) = {subtotal:,} تومان\n"
-        cursor.close()
-        conn.close()
+        cursor.close(); conn.close()
         text += f"\n💰 **جمع کل:** {total_price:,} تومان"
         keyboard = [
             [InlineKeyboardButton("🌐 تکمیل خرید در سایت", url="https://pczone-ice3.onrender.com/cart")],
             [InlineKeyboardButton("🗑️ خالی کردن سبد", callback_data="clear_cart")],
             [InlineKeyboardButton("🔙 بازگشت", callback_data="main_menu")]
         ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        if query: await query.edit_message_text(text, reply_markup=reply_markup, parse_mode="Markdown")
-        else: await update.message.reply_text(text, reply_markup=reply_markup, parse_mode="Markdown")
+        if query: await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
+        else: await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
     except Exception as e:
         await query.edit_message_text(f"خطا: {str(e)}")
 
@@ -185,29 +148,20 @@ async def search_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         cursor = conn.cursor()
         cursor.execute("SELECT id, name, price FROM products WHERE name ILIKE %s LIMIT 5", (f"%{search_query}%",))
         products = cursor.fetchall()
-        cursor.close()
-        conn.close()
+        cursor.close(); conn.close()
         if not products:
             await update.message.reply_text(f"❌ محصولی با نام «{search_query}» پیدا نشد.")
             return
-        keyboard = []
-        for p in products:
-            btn_text = f"{p[1]} - {p[2]:,} تومان"
-            keyboard.append([InlineKeyboardButton(btn_text, callback_data=f"product_{p[0]}")])
+        keyboard = [[InlineKeyboardButton(f"{p[1]} - {p[2]:,} تومان", callback_data=f"product_{p[0]}")] for p in products]
         keyboard.append([InlineKeyboardButton("🔙 بازگشت", callback_data="main_menu")])
         await update.message.reply_text(f"🔍 نتایج جستجو برای «{search_query}»:", reply_markup=InlineKeyboardMarkup(keyboard))
     except Exception as e:
-        await update.message.reply_text(f"خطا در جستجو: {str(e)}")
+        await update.message.reply_text(f"خطا: {str(e)}")
 
 async def about_us(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    text = (
-        "🖥️ **درباره PC Zone**\n\n"
-        "ما یک فروشگاه آنلاین تخصصی در زمینه قطعات کامپیوتر هستیم.\n"
-        "ضمانت اصالت کالا، ارسال سریع و پشتیبانی ۲۴/۷ از افتخارات ماست.\n\n"
-        "🌐 وب‌سایت ما: https://pczone-ice3.onrender.com"
-    )
+    text = "🖥️ **درباره PC Zone**\n\nما یک فروشگاه آنلاین تخصصی در زمینه قطعات کامپیوتر هستیم.\nضمانت اصالت کالا، ارسال سریع و پشتیبانی ۲۴/۷ از افتخارات ماست.\n\n🌐 وب‌سایت ما: https://pczone-ice3.onrender.com"
     keyboard = [[InlineKeyboardButton("🔙 بازگشت", callback_data="main_menu")]]
     await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
 
@@ -221,12 +175,10 @@ async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("📞 ارتباط با پشتیبانی", url=f"https://t.me/{ADMIN_USERNAME.replace('@', '')}")],
         [InlineKeyboardButton("ℹ️ درباره ما", callback_data="about_us")]
     ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
     msg = "به منوی اصلی خوش آمدید. یک گزینه را انتخاب کنید:"
-    if query: await query.edit_message_text(msg, reply_markup=reply_markup)
-    else: await update.message.reply_text(msg, reply_markup=reply_markup)
+    if query: await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup(keyboard))
+    else: await update.message.reply_text(msg, reply_markup=InlineKeyboardMarkup(keyboard))
 
-# ==================== اجرای ربات ====================
 def main():
     print("🤖 ربات در حال روشن شدن است...")
     application = Application.builder().token(BOT_TOKEN).build()
@@ -241,7 +193,7 @@ def main():
     application.add_handler(CallbackQueryHandler(about_us, pattern="^about_us$"))
     application.add_handler(CallbackQueryHandler(main_menu, pattern="^main_menu$"))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, search_handler))
-    print("✅ ربات با موفقیت روشن شد! حالا به تلگرام برو و به ربات پیام بده.")
+    print("✅ ربات با موفقیت روشن شد!")
     application.run_polling()
 
 if __name__ == "__main__":

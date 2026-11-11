@@ -11,9 +11,8 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "pc-zone-secret-2024"
 
-# ==================== اتصال به دیتابیس ابری Supabase ====================
-# علامت @ با %40 جایگزین شده تا آدرس دیتابیس درست کار کنه
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:As13881202%40pc@db.gmakikihtqvlvmkeyxza.supabase.co:5432/postgres"
+# ==================== اتصال به دیتابیس ابری Supabase (Pooler) ====================
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres.gmakikihtqvlvmkeyxza:As13881202%40pc@aws-0-us-east-1.pooler.supabase.com:5432/postgres"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 UPLOAD_FOLDER = os.path.join("static", "uploads")
@@ -469,14 +468,7 @@ def admin_delete_review(rid):
     r = Review.query.get_or_404(rid); db.session.delete(r); db.session.commit(); flash("نظر حذف شد", "success")
     return redirect(url_for("admin_reviews"))
 
-# ==================== اجرای اولیه دیتابیس ====================
 with app.app_context():
     init_database()
 
-if __name__ == "__main__":
-    print("\n" + "="*50)
-    print("🖥️  PC Zone فروشگاه در حال اجراست")
-    print("🌐 http://localhost:5000")
-    print("👤 ادمین: admin / admin123")
-    print("="*50 + "\n")
-    app.run(debug=True, host="0.0.0.0", port=5000)
+# app.run(debug=True, host="0.0.0.0", port=5000)
