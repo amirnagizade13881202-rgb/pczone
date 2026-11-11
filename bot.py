@@ -5,12 +5,12 @@ import threading
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, MessageHandler, filters
 
+# ==================== تنظیمات ====================
 BOT_TOKEN = "9072062584:AAHyr3ZeRD6o0rhGbNbL7JSUCpSJ6i1P3O0"
 ADMIN_USERNAME = "@amirimigadze1388"
-
-# آدرس Pooler (اصلاح شده برای Render)
 DB_URI = "postgresql://postgres.gmakikihtqvlvmkeyxza:As13881202%40pc@aws-0-us-east-1.pooler.supabase.com:5432/postgres"
 
+# ==================== وب‌سرور فیک برای رندر ====================
 web_app = Flask(__name__)
 
 @web_app.route('/')
@@ -22,11 +22,43 @@ def run_web_server():
 
 threading.Thread(target=run_web_server, daemon=True).start()
 
+# ==================== ساخت خودکار جدول ====================
+def create_tables_if_not_exist():
+    try:
+        conn = psycopg2.connect(DB_URI)
+        cursor = conn.cursor()
+        # ساخت جدول محصولات در صورت نبود
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS products (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(200) NOT NULL,
+                category_id INTEGER,
+                price INTEGER,
+                old_price INTEGER,
+                image VARCHAR(500),
+                description TEXT,
+                stock INTEGER,
+                rating REAL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print("✅ جدول محصولات بررسی/ساخته شد.")
+    except Exception as e:
+        print(f"خطا در ساخت جدول: {e}")
+
+# فراخوانی هنگام اجرا
+create_tables_if_not_exist()
+
+# ==================== اتصال به دیتابیس ====================
 def get_db():
     conn = psycopg2.connect(DB_URI)
     conn.autocommit = True
     return conn
 
+# ==================== توابع ربات ====================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_name = update.effective_user.first_name
     welcome_text = f"سلام {user_name} عزیز! 👋\nبه ربات فروشگاه **PC Zone** خوش آمدید. 🖥️\n\nاز منوی زیر استفاده کنید:"
@@ -48,13 +80,16 @@ async def show_products(update: Update, context: ContextTypes.DEFAULT_TYPE):
         cursor.execute("SELECT id, name, price FROM products LIMIT 10")
         products = cursor.fetchall()
         cursor.close(); conn.close()
+        
         if not products:
             msg = "در حال حاضر هیچ محصولی در فروشگاه موجود نیست. 😕"
             if query: await query.edit_message_text(msg)
             else: await update.message.reply_text(msg)
             return
+
         keyboard = [[InlineKeyboardButton(f"{p[1]} - {p[2]:,} تومان", callback_data=f"product_{p[0]}")] for p in products]
         keyboard.append([InlineKeyboardButton("🔙 بازگشت به منو", callback_data="main_menu")])
+        
         msg_text = "📦 لطفاً یکی از محصولات را انتخاب کنید:"
         if query: await query.edit_message_text(msg_text, reply_markup=InlineKeyboardMarkup(keyboard))
         else: await update.message.reply_text(msg_text, reply_markup=InlineKeyboardMarkup(keyboard))
@@ -179,6 +214,7 @@ async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if query: await query.edit_message_text(msg, reply_markup=InlineKeyboardMarkup(keyboard))
     else: await update.message.reply_text(msg, reply_markup=InlineKeyboardMarkup(keyboard))
 
+# ==================== اجرای ربات ====================
 def main():
     print("🤖 ربات در حال روشن شدن است...")
     application = Application.builder().token(BOT_TOKEN).build()
