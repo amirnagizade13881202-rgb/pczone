@@ -22,6 +22,46 @@ def run_web_server():
 
 threading.Thread(target=run_web_server, daemon=True).start()
 
+# ==================== ساخت جدول در صورت نبود ====================
+def create_tables_if_not_exist():
+    # مسیر دیتابیس روی سرور رندر
+    db_file = "/tmp/pczone.db" if os.path.exists("/tmp/pczone.db") else "pczone.db"
+    
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
+    
+    # ساخت جدول محصولات
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS products (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            category_id INTEGER,
+            price INTEGER,
+            old_price INTEGER,
+            image TEXT,
+            description TEXT,
+            stock INTEGER,
+            rating REAL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    # چک کردن اینکه آیا محصولی هست یا نه
+    cursor.execute("SELECT COUNT(*) FROM products")
+    if cursor.fetchone()[0] == 0:
+        # اگه خالی بود، یه محصول تستی اضافه کن تا جدول ساخته بشه
+        cursor.execute("""
+            INSERT INTO products (name, category_id, price, old_price, image, description, stock, rating) 
+            VALUES ('پردازنده تستی Intel Core i9', 1, 28500000, 31000000, '', 'این یک محصول تستی است. برای دیدن محصولات اصلی، از پنل ادمین سایت استفاده کنید.', 5, 4.9)
+        """)
+        cursor.execute("""
+            INSERT INTO products (name, category_id, price, old_price, image, description, stock, rating) 
+            VALUES ('کارت گرافیک تستی RTX 4090', 2, 95000000, 105000000, '', 'این یک محصول تستی است.', 3, 5.0)
+        """)
+    
+    conn.commit()
+    conn.close()
+
 # ==================== اتصال به دیتابیس ====================
 def get_db():
     # اولویت اول: مسیر سرور رندر (لینوکس)
@@ -256,6 +296,9 @@ async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ==================== اجرای ربات ====================
 def main():
     print("🤖 ربات در حال روشن شدن است...")
+    
+    # ساخت جدول‌ها در زمان اجرا
+    create_tables_if_not_exist()
     
     application = Application.builder().token(BOT_TOKEN).build()
 
