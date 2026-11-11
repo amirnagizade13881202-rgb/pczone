@@ -9,19 +9,13 @@ from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-
-# ==================== تنظیمات دیتابیس (برای سرور) ====================
-# استفاده از /tmp/ برای اینکه روی سرور رندر مشکلی پیش نیاد
-db_path = os.path.join("/tmp", "pczone.db") if os.environ.get("RENDER") else "sqlite:///pczone.db"
-if os.environ.get("RENDER"):
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + db_path
-else:
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///pczone.db"
-
 app.config["SECRET_KEY"] = "pc-zone-secret-2024"
+
+# ==================== اتصال به دیتابیس ابری Supabase ====================
+# علامت @ با %40 جایگزین شده تا آدرس دیتابیس درست کار کنه
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:As13881202%40pc@db.gmakikihtqvlvmkeyxza.supabase.co:5432/postgres"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# تنظیمات آپلود عکس
 UPLOAD_FOLDER = os.path.join("static", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
@@ -51,7 +45,6 @@ IMG_RAM = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width
 IMG_SSD = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><rect width='300' height='300' fill='%231a1a2e'/><rect x='90' y='90' width='120' height='120' fill='%23fbbf24' rx='15'/><text x='150' y='165' font-size='30' fill='black' text-anchor='middle' font-family='Arial'>SSD</text></svg>"
 IMG_CASE = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><rect width='300' height='300' fill='%231a1a2e'/><rect x='80' y='50' width='140' height='200' fill='%23a855f7' rx='15'/><text x='150' y='165' font-size='30' fill='white' text-anchor='middle' font-family='Arial'>CASE</text></svg>"
 
-
 def init_database():
     db.create_all()
     if User.query.count() == 0:
@@ -75,7 +68,6 @@ def init_database():
         for p in products: db.session.add(p)
         db.session.commit()
 
-# ==================== صفحات اصلی ====================
 @app.route("/")
 def index():
     category_slug = request.args.get("category", "all"); search = request.args.get("q", ""); sort = request.args.get("sort", "default")
@@ -88,7 +80,6 @@ def index():
         cat = Category.query.filter_by(slug=category_slug).first()
         if cat: q = q.filter_by(category_id=cat.id)
     if search: q = q.filter(Product.name.contains(search))
-    
     if min_price is not None: q = q.filter(Product.price >= min_price)
     if max_price is not None: q = q.filter(Product.price <= max_price)
     if in_stock == "1": q = q.filter(Product.stock > 0)
@@ -129,7 +120,6 @@ def contact():
         return redirect(url_for("contact"))
     return render_template("contact.html")
 
-# ==================== احراز هویت ====================
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated: return redirect(url_for("index"))
@@ -167,7 +157,6 @@ def profile():
         db.session.commit(); flash("پروفایل بروزرسانی شد", "success"); return redirect(url_for("profile"))
     return render_template("profile.html")
 
-# ==================== سبد خرید ====================
 @app.route("/api/cart")
 def get_cart():
     cart = session.get("cart", {}); items = []; total = 0
@@ -204,7 +193,6 @@ def apply_coupon():
 @app.route("/cart")
 def cart_page(): return render_template("cart.html")
 
-# ==================== علاقه‌مندی‌ها (Wishlist) ====================
 @app.route("/api/wishlist/toggle/<int:pid>", methods=["POST"])
 @login_required
 def toggle_wishlist(pid):
@@ -222,7 +210,6 @@ def wishlist_page():
     items = Wishlist.query.filter_by(user_id=current_user.id).all()
     return render_template("wishlist.html", items=items)
 
-# ==================== نظرات (Reviews) ====================
 @app.route("/api/review/add/<int:pid>", methods=["POST"])
 @login_required
 def add_review(pid):
@@ -236,7 +223,6 @@ def add_review(pid):
     db.session.add(new_review); db.session.commit()
     return jsonify({"success": True, "message": "نظر شما ثبت شد"})
 
-# ==================== اعلان‌ها (Notifications) ====================
 @app.route("/api/notifications")
 @login_required
 def get_notifications():
@@ -261,7 +247,6 @@ def mark_all_read():
     Notification.query.filter_by(user_id=current_user.id, is_read=False).update({"is_read": True})
     db.session.commit(); return jsonify({"success": True})
 
-# ==================== پرداخت ====================
 @app.route("/checkout", methods=["GET", "POST"])
 @login_required
 def checkout():
@@ -342,7 +327,6 @@ def my_orders():
     orders = Order.query.filter_by(user_id=current_user.id).order_by(Order.created_at.desc()).all()
     return render_template("my_orders.html", orders=orders)
 
-# ==================== پنل ادمین ====================
 def admin_required(f):
     from functools import wraps
     @wraps(f)
@@ -455,7 +439,6 @@ def admin_delete_coupon(cid):
     c = Coupon.query.get_or_404(cid); db.session.delete(c); db.session.commit(); flash("کد حذف شد", "success")
     return redirect(url_for("admin_coupons"))
 
-# ==================== مدیریت کاربران و نظرات (ادمین) ====================
 @app.route("/admin/users")
 @login_required
 @admin_required
@@ -487,7 +470,6 @@ def admin_delete_review(rid):
     return redirect(url_for("admin_reviews"))
 
 # ==================== اجرای اولیه دیتابیس ====================
-# این بخش باعث میشه موقع بالا اومدن سرور، جدول‌ها ساخته بشن
 with app.app_context():
     init_database()
 

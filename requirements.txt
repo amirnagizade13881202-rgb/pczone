@@ -5,3 +5,4 @@ Werkzeug==3.0.1
 requests
 gunicorn
 python-telegram-bot
+psycopg2-binary
