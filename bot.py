@@ -11,7 +11,6 @@ DB_PATH = os.path.join("instance", "pczone.db")
 ADMIN_USERNAME = "@amirimigadze1388"  # آیدی تلگرام خودت
 
 # ==================== وب‌سرور فیک برای رندر ====================
-# رندر برای Web Service نیاز به یک پورت باز داره، این بخش اون رو تامین می‌کنه
 web_app = Flask(__name__)
 
 @web_app.route('/')
@@ -19,16 +18,19 @@ def home():
     return "PC Zone Bot is running!"
 
 def run_web_server():
-    # پورت 10000 معمولاً برای رندر پیشنهاد میشه
     web_app.run(host='0.0.0.0', port=10000)
 
-# اجرای وب‌سرور در یک ترد جداگانه تا ربات متوقف نشه
 threading.Thread(target=run_web_server, daemon=True).start()
 
 # ==================== اتصال به دیتابیس ====================
 def get_db():
-    if os.path.exists(DB_PATH):
+    # اولویت اول: مسیر سرور رندر (لینوکس)
+    if os.path.exists("/tmp/pczone.db"):
+        conn = sqlite3.connect("/tmp/pczone.db")
+    # اولویت دوم: مسیر لوکال کامپیوتر (پوشه instance)
+    elif os.path.exists(DB_PATH):
         conn = sqlite3.connect(DB_PATH)
+    # اولویت سوم: مسیر پیش‌فرض
     else:
         conn = sqlite3.connect("pczone.db")
     conn.row_factory = sqlite3.Row
@@ -82,7 +84,9 @@ async def show_products(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else: await update.message.reply_text(msg_text, reply_markup=reply_markup)
 
     except Exception as e:
-        await update.message.reply_text(f"خطا: {str(e)}")
+        error_msg = f"خطا در دریافت محصولات: {str(e)}"
+        if query: await query.edit_message_text(error_msg)
+        else: await update.message.reply_text(error_msg)
 
 async def product_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -118,7 +122,7 @@ async def product_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text(text, reply_markup=reply_markup, parse_mode="Markdown")
 
     except Exception as e:
-        await query.edit_message_text(f"خطا: {str(e)}")
+        await query.edit_message_text(f"خطا در دریافت جزئیات: {str(e)}")
 
 async def add_to_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -174,7 +178,7 @@ async def my_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else: await update.message.reply_text(text, reply_markup=reply_markup, parse_mode="Markdown")
 
     except Exception as e:
-        await query.edit_message_text(f"خطا: {str(e)}")
+        await query.edit_message_text(f"خطا در نمایش سبد: {str(e)}")
 
 async def clear_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -217,7 +221,7 @@ async def search_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"🔍 نتایج جستجو برای «{search_query}»:", reply_markup=reply_markup)
         
     except Exception as e:
-        await update.message.reply_text(f"خطا: {str(e)}")
+        await update.message.reply_text(f"خطا در جستجو: {str(e)}")
 
 async def about_us(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
