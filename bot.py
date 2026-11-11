@@ -1,13 +1,29 @@
 import sqlite3
 import os
+from flask import Flask
+import threading
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, MessageHandler, filters
 
 # ==================== تنظیمات ====================
 BOT_TOKEN = "9072062584:AAHyr3ZeRD6o0rhGbNbL7JSUCpSJ6i1P3O0"
 DB_PATH = os.path.join("instance", "pczone.db")
-ADMIN_USERNAME = "@nagizade_1388"  # آیدی تلگرام خودت رو اینجا بذار (مثلاً @amir)
+ADMIN_USERNAME = "@amirimigadze1388"  # آیدی تلگرام خودت
 
+# ==================== وب‌سرور فیک برای رندر ====================
+# رندر برای Web Service نیاز به یک پورت باز داره، این بخش اون رو تامین می‌کنه
+web_app = Flask(__name__)
+
+@web_app.route('/')
+def home():
+    return "PC Zone Bot is running!"
+
+def run_web_server():
+    # پورت 10000 معمولاً برای رندر پیشنهاد میشه
+    web_app.run(host='0.0.0.0', port=10000)
+
+# اجرای وب‌سرور در یک ترد جداگانه تا ربات متوقف نشه
+threading.Thread(target=run_web_server, daemon=True).start()
 
 # ==================== اتصال به دیتابیس ====================
 def get_db():
@@ -17,7 +33,6 @@ def get_db():
         conn = sqlite3.connect("pczone.db")
     conn.row_factory = sqlite3.Row
     return conn
-
 
 # ==================== توابع ربات ====================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -36,7 +51,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text(welcome_text, reply_markup=reply_markup, parse_mode="Markdown")
-
 
 async def show_products(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -69,7 +83,6 @@ async def show_products(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     except Exception as e:
         await update.message.reply_text(f"خطا: {str(e)}")
-
 
 async def product_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -107,16 +120,10 @@ async def product_detail(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await query.edit_message_text(f"خطا: {str(e)}")
 
-
-# ==================== سبد خرید ====================
 async def add_to_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer("✓ به سبد خرید اضافه شد!")
-    
     product_id = int(query.data.split("_")[1])
-    user_id = str(query.from_user.id)
     
-    # ذخیره سبد خرید در حافظه ربات (context.user_data)
     if 'cart' not in context.user_data:
         context.user_data['cart'] = {}
     
@@ -124,7 +131,6 @@ async def add_to_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     cart[str(product_id)] = cart.get(str(product_id), 0) + 1
     
     await query.answer(f"✓ به سبد اضافه شد (تعداد: {cart[str(product_id)]})", show_alert=True)
-
 
 async def my_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -170,21 +176,17 @@ async def my_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await query.edit_message_text(f"خطا: {str(e)}")
 
-
 async def clear_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer("سبد خالی شد!", show_alert=True)
     context.user_data['cart'] = {}
     await main_menu(update, context)
 
-
-# ==================== جستجوی محصول ====================
 async def search_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     await query.edit_message_text("🔍 لطفاً نام محصول مورد نظر خود را بنویسید و بفرستید:")
     context.user_data['searching'] = True
-
 
 async def search_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.user_data.get('searching'):
@@ -217,8 +219,6 @@ async def search_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"خطا: {str(e)}")
 
-
-# ==================== منوها ====================
 async def about_us(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -231,7 +231,6 @@ async def about_us(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     keyboard = [[InlineKeyboardButton("🔙 بازگشت", callback_data="main_menu")]]
     await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode="Markdown")
-
 
 async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -250,18 +249,15 @@ async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if query: await query.edit_message_text(msg, reply_markup=reply_markup)
     else: await update.message.reply_text(msg, reply_markup=reply_markup)
 
-
 # ==================== اجرای ربات ====================
 def main():
     print("🤖 ربات در حال روشن شدن است...")
     
     application = Application.builder().token(BOT_TOKEN).build()
 
-    # دستورات
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("menu", main_menu))
 
-    # دکمه‌ها
     application.add_handler(CallbackQueryHandler(show_products, pattern="^show_products$"))
     application.add_handler(CallbackQueryHandler(product_detail, pattern="^product_"))
     application.add_handler(CallbackQueryHandler(add_to_cart, pattern="^addcart_"))
@@ -271,12 +267,10 @@ def main():
     application.add_handler(CallbackQueryHandler(about_us, pattern="^about_us$"))
     application.add_handler(CallbackQueryHandler(main_menu, pattern="^main_menu$"))
 
-    # هندلر برای جستجو (پیام متنی)
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, search_handler))
 
     print("✅ ربات با موفقیت روشن شد! حالا به تلگرام برو و به ربات پیام بده.")
     application.run_polling()
-
 
 if __name__ == "__main__":
     main()
