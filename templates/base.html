@@ -4,10 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}PC Zone | فروشگاه قطعات کامپیوتر{% endblock %}</title>
-    
-    <!-- تنظیم فاوآیکون (لوگوی کنار آدرس سایت) -->
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
-    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -15,7 +12,6 @@
 <body>
 <header class="navbar">
     <div class="container nav-inner">
-        <!-- بخش لوگوی سایت -->
         <a href="/" class="logo" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
             <img src="{{ url_for('static', filename='logo.png') }}" alt="PC Zone Logo" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover;">
             <span>PC <span style="color: var(--accent);">Zone</span></span>
@@ -27,6 +23,11 @@
         </form>
         
         <div class="nav-actions">
+            <!-- لینک کانال روبیکا (در هدر) -->
+            <a href="https://rubika.ir/danlowed__Pc_zone1404" target="_blank" class="nav-link" title="کانال روبیکا" style="color: var(--accent);">
+                <i class="fa-solid fa-paper-plane"></i>
+            </a>
+
             {% if current_user.is_authenticated %}
                 <div class="notif-wrapper" style="position: relative;">
                     <a href="#" class="nav-link" title="اعلان‌ها" onclick="toggleNotifications(event)">
@@ -70,6 +71,14 @@
             <a href="/about" style="color: var(--muted); text-decoration: none; font-size: 14px;">درباره ما</a>
             <a href="/contact" style="color: var(--muted); text-decoration: none; font-size: 14px;">تماس با ما</a>
         </div>
+        
+        <!-- بخش شبکه‌های اجتماعی -->
+        <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;">
+            <a href="https://rubika.ir/danlowed__Pc_zone1404" target="_blank" style="color: var(--accent); text-decoration: none; font-size: 16px; display: flex; align-items: center; gap: 8px; background: var(--card-2); padding: 8px 16px; border-radius: 10px; border: 1px solid rgba(124, 58, 237, 0.3); transition: 0.2s;" onmouseover="this.style.borderColor='var(--accent)'; this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='rgba(124, 58, 237, 0.3)'; this.style.transform='translateY(0)'">
+                <i class="fa-solid fa-paper-plane"></i> کانال روبیکا
+            </a>
+        </div>
+
         <p>© ۲۰۲۴ PC Zone — تمامی حقوق محفوظ است | ساخته شده با ❤️ و پایتون</p>
     </div>
 </footer>
