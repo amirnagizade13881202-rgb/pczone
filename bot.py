@@ -6,7 +6,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, MessageHandler, filters
 
 # ==================== تنظیمات ====================
-BOT_TOKEN = "8900132541:AAGvmG-C177mw2jErsE7MSAcAA1af4DpUfE"
+BOT_TOKEN = "9072062584:AAHyr3ZeRD6o0rhGbNbL7JSUCpSJ6i1P3O0"
 ADMIN_USERNAME = "@amirimigadze1388"
 DB_URI = "postgresql://postgres.gmakikihtqvlvmkeyxza:As13881202%40pc@aws-0-us-east-1.pooler.supabase.com:5432/postgres"
 
